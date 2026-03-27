@@ -187,8 +187,7 @@ docker-compose build jupyter-spark
 | Servicio | Puerto | URL | Perfil |
 |----------|--------|-----|--------|
 | **JupyterLab** | 8888 | http://localhost:8888?token=bigdata2026 | basico, completo |
-| **Spark Master UI** | 8080 | http://localhost:8080 | basico, completo |
-| **Spark Worker UI** | 8081 | http://localhost:8081 | basico, completo |
+| **Spark UI** | 4040 | http://localhost:4040 | basico, completo |
 | **Kafka** | 9092 | `localhost:9092` (broker) | completo |
 | **Hive Metastore** | 9083 | `thrift://localhost:9083` | completo |
 | **HiveServer2** | 10000 | `jdbc:hive2://localhost:10000` | completo |
