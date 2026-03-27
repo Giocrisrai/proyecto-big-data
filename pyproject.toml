@@ -1,0 +1,25 @@
+[project]
+name = "proyecto-big-data"
+version = "1.0.0"
+description = "Repositorio de practica Big Data - Curso BIY7131 DUOC UC 2026-1"
+requires-python = ">=3.11"
+dependencies = [
+    "pyspark>=3.5.0",
+    "pandas>=2.1.0",
+    "numpy>=1.26.0",
+    "openpyxl>=3.1.0",
+    "matplotlib>=3.8.0",
+    "seaborn>=0.13.0",
+    "plotly>=5.18.0",
+    "kafka-python-ng>=2.0.2",
+    "tqdm>=4.66.0",
+    "Faker>=22.0.0",
+    "jupyter>=1.0.0",
+    "jupyterlab>=4.0.0",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.0.0",
+    "ruff>=0.4.0",
+]
