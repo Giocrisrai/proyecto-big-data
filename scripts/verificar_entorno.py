@@ -80,7 +80,7 @@ def verificar_spark_csv():
         .appName("verificacion_csv") \
         .master("local[*]") \
         .getOrCreate()
-    df = spark.read.csv("/home/jovyan/datos/flights.csv", header=True, inferSchema=True)
+    df = spark.read.csv("/home/jovyan/datos/flights.csv", header=True, inferSchema=True, nullValue="NA")
     count = df.count()
     spark.stop()
     return count > 0
