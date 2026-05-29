@@ -75,6 +75,13 @@ proyecto-big-data/
 │   ├── ufo_sightings.xlsx
 │   ├── cartas_magic.csv
 │   └── streaming/                  # Datos generados para streaming
+│       ├── transacciones_1000.jsonl
+│       ├── logs_1000.jsonl
+│       ├── iot_1000.jsonl
+│       ├── iot_dirty_500.jsonl      # Con anomalias intencionales
+│       ├── clickstream_1000.jsonl
+│       ├── stock_1000.jsonl
+│       └── social_1000.jsonl
 ├── scripts/
 │   ├── verificar_entorno.py        # Verificacion del entorno
 │   ├── generar_datos_streaming.py  # Generador de datos en tiempo real
@@ -127,16 +134,21 @@ docker-compose --profile completo up -d
 
 ### EA3: Procesamiento en Tiempo Real (perfil `completo`)
 
-| # | Notebook | Descripcion |
-|---|----------|-------------|
-| 01 | `kafka_introduccion.ipynb` | Introduccion a Apache Kafka |
-| 02 | `ingesta_tiempo_real.ipynb` | Ingesta de datos en tiempo real con Kafka |
-| 03 | `spark_structured_streaming.ipynb` | Spark Structured Streaming |
-| 04 | `dashboard_tiempo_real.ipynb` | Dashboard de monitoreo en tiempo real |
+| # | Notebook | Descripcion | Perfil |
+|---|----------|-------------|--------|
+| 01 | `kafka_introduccion.ipynb` | Introduccion a Apache Kafka | completo |
+| 02 | `ingesta_tiempo_real.ipynb` | Ingesta de datos en tiempo real con Kafka | completo |
+| 03 | `spark_structured_streaming.ipynb` | Spark Structured Streaming | completo |
+| 04 | `dashboard_tiempo_real.ipynb` | Dashboard interactivo con ipywidgets | **basico** |
+| 05 | `streaming_sin_kafka.ipynb` | Streaming offline desde JSONL (sin Kafka) | **basico** |
+| 06 | `watermarks_y_windows.ipynb` | Watermarks y ventanas (explicacion visual) | **basico** |
 
 ```bash
-# Perfil necesario
+# Para notebooks 01-03 (con Kafka)
 docker-compose --profile completo up -d
+
+# Para notebooks 04-06 (sin Kafka)
+docker-compose --profile basico up -d
 ```
 
 ### Actividades Extras
