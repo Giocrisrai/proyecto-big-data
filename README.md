@@ -2,9 +2,9 @@
 
 ![DUOC UC](https://img.shields.io/badge/DUOC_UC-BIY7131-003DA5?style=flat-square)
 ![Semestre](https://img.shields.io/badge/Semestre-2026--1-green?style=flat-square)
-![PySpark](https://img.shields.io/badge/PySpark-3.5-E25A1C?style=flat-square&logo=apachespark&logoColor=white)
+![PySpark](https://img.shields.io/badge/PySpark-4.1-E25A1C?style=flat-square&logo=apachespark&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white)
-![Kafka](https://img.shields.io/badge/Apache_Kafka-3.7-231F20?style=flat-square&logo=apachekafka&logoColor=white)
+![Kafka](https://img.shields.io/badge/Apache_Kafka-3.9-231F20?style=flat-square&logo=apachekafka&logoColor=white)
 ![Hive](https://img.shields.io/badge/Apache_Hive-4.0-FDEE21?style=flat-square&logo=apachehive&logoColor=black)
 
 ## Descripcion
@@ -298,7 +298,7 @@ Dentro de JupyterLab, abre un notebook nuevo y ejecuta:
 
 Este script verifica:
 - Python >= 3.10
-- PySpark 3.5.x instalado y funcional
+- PySpark instalado y funcional (Spark >= 3.5; la imagen actual trae Spark 4.1)
 - Librerias Python (pandas, numpy, matplotlib, seaborn, openpyxl, plotly)
 - Datasets accesibles
 - Lectura de CSV y Parquet con Spark

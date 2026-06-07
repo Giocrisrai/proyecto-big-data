@@ -33,7 +33,7 @@ def verificar_python():
 
 
 def verificar_pyspark():
-    """Verifica que PySpark esta instalado y puede crear SparkSession."""
+    """Verifica que PySpark esta instalado y puede crear SparkSession (Spark >= 3.5)."""
     from pyspark.sql import SparkSession
     spark = SparkSession.builder \
         .appName("verificacion_entorno") \
@@ -41,7 +41,12 @@ def verificar_pyspark():
         .getOrCreate()
     version = spark.version
     spark.stop()
-    return version.startswith("3.5")
+    print(f"    Version detectada: Spark {version}")
+    try:
+        major, minor = (int(x) for x in version.split(".")[:2])
+    except ValueError:
+        return False
+    return (major, minor) >= (3, 5)
 
 
 def verificar_librerias():
@@ -156,7 +161,7 @@ def main():
     print("\n--- Verificaciones basicas ---")
     basicas = [
         ("Python >= 3.10", verificar_python),
-        ("PySpark 3.5.x instalado", verificar_pyspark),
+        ("PySpark instalado (Spark >= 3.5)", verificar_pyspark),
         ("Librerias Python (pandas, numpy, matplotlib, etc.)", verificar_librerias),
         ("Datasets accesibles", verificar_datasets),
         ("Spark puede leer CSV", verificar_spark_csv),

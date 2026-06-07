@@ -24,6 +24,15 @@ services:
       - jupyter-work:/home/jovyan/work
     networks:
       - bigdata-net
+    # El healthcheck del base image tiene timeout de 1s, demasiado ajustado en
+    # equipos con Docker en VM (Mac/Windows): marca el contenedor como "unhealthy"
+    # aunque JupyterLab responde bien. Lo relajamos.
+    healthcheck:
+      test: ["CMD-SHELL", "/etc/jupyter/docker_healthcheck.py || exit 1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 40s
+      retries: 5
     restart: unless-stopped
 
   # ============================================
@@ -76,7 +85,10 @@ services:
     restart: unless-stopped
 
   hive-metastore:
-    image: apache/hive:4.0.1
+    build:
+      context: ./docker/hive
+      dockerfile: Dockerfile
+    image: bigdata-hive:4.0.1
     container_name: bigdata-hive-metastore
     profiles: ["completo"]
     ports:
@@ -92,7 +104,10 @@ services:
     restart: unless-stopped
 
   hive-server:
-    image: apache/hive:4.0.1
+    build:
+      context: ./docker/hive
+      dockerfile: Dockerfile
+    image: bigdata-hive:4.0.1
     container_name: bigdata-hive-server
     profiles: ["completo"]
     ports:
