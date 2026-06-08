@@ -99,6 +99,14 @@ proyecto-big-data/
 
 ## Guia por Experiencia de Aprendizaje
 
+### Demo guiada: servicios locales vs nube (recomendado para empezar)
+
+El notebook `notebooks/DEMO_servicios_vs_nube.ipynb` recorre los 4 servicios del
+entorno (Spark, Kafka, Spark Structured Streaming y Hive) *funcionando*, y conecta
+cada uno con su equivalente gestionado en la nube (Dataproc, Pub/Sub, Dataflow,
+Glue/BigQuery, etc.). Ideal para la primera clase, para que los alumnos entiendan
+qué hace cada pieza y el paralelo con AWS/Azure/GCP. Requiere el perfil `completo`.
+
 ### EA1: Fundamentos de Big Data (perfil `basico`)
 
 | # | Notebook | Descripcion |

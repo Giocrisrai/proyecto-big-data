@@ -135,17 +135,17 @@ def verificar_kafka():
 
 
 def verificar_hive():
-    """Verifica conexion a Hive Metastore."""
-    from pyspark.sql import SparkSession
-    spark = SparkSession.builder \
-        .appName("verificacion_hive") \
-        .master("local[*]") \
-        .config("hive.metastore.uris", "thrift://hive-metastore:9083") \
-        .enableHiveSupport() \
-        .getOrCreate()
-    spark.sql("SHOW DATABASES").show()
-    spark.stop()
-    return True
+    """Verifica que el Hive Metastore este accesible (puerto thrift 9083).
+
+    Nota: NO se usa Spark para esto. El cliente Hive que trae Spark 4.1 (v2.3)
+    no es compatible con el metastore Hive 4.0 de este entorno, asi que las
+    operaciones de tabla desde Spark fallan o se cuelgan. El catalogo Hive se
+    trabaja con su motor nativo (HiveServer2 + beeline). Aqui solo comprobamos
+    que el servicio del metastore responde en su puerto.
+    """
+    import socket
+    with socket.create_connection(("hive-metastore", 9083), timeout=5):
+        return True
 
 
 def main():
