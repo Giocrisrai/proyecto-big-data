@@ -121,23 +121,21 @@ qué hace cada pieza y el paralelo con AWS/Azure/GCP. Requiere el perfil `comple
 docker-compose --profile basico up -d
 ```
 
-### EA2: ETL y Procesamiento Batch (perfil `basico`, `completo` para Hive)
+### EA2: ETL y Procesamiento Batch (perfil `basico`)
 
 | # | Notebook | Descripcion | Perfil |
 |---|----------|-------------|--------|
 | 01 | `ingesta_datos.ipynb` | Carga de datos desde diversas fuentes | basico |
 | 02 | `transformacion_limpieza.ipynb` | Limpieza y transformacion de datos | basico |
 | 03 | `spark_sql.ipynb` | Consultas SQL sobre DataFrames | basico |
-| 04 | `hive_metastore.ipynb` | Hive Metastore y tablas persistentes | completo |
+| 04 | `hive_metastore.ipynb` | Hive Metastore (embebido) y tablas persistentes | basico |
 | 05 | `machine_learning_spark.ipynb` | Machine Learning con Spark MLlib | basico |
 | 06 | `visualizacion_datos.ipynb` | Visualizacion con Matplotlib, Seaborn y Plotly | basico |
 
 ```bash
-# Para notebooks 01-03, 05-06 basta con el perfil basico
+# Todos los notebooks de EA2 corren con el perfil basico
+# (el notebook 04 usa el metastore Hive embebido de Spark, no requiere el servicio externo)
 docker-compose --profile basico up -d
-
-# Para notebook 04 (Hive) necesitas el perfil completo
-docker-compose --profile completo up -d
 ```
 
 ### EA3: Procesamiento en Tiempo Real (perfil `completo`)
