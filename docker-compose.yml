@@ -22,6 +22,7 @@ services:
       - ./datos:/home/jovyan/datos
       - ./scripts:/home/jovyan/scripts
       - jupyter-work:/home/jovyan/work
+      - hive-warehouse:/warehouse
     networks:
       - bigdata-net
     # El healthcheck del base image tiene timeout de 1s, demasiado ajustado en
@@ -96,7 +97,9 @@ services:
     environment:
       - SERVICE_NAME=metastore
       - DB_DRIVER=postgres
-      - SERVICE_OPTS=-Djavax.jdo.option.ConnectionDriverName=org.postgresql.Driver -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://postgres:5432/metastore -Djavax.jdo.option.ConnectionUserName=${POSTGRES_USER:-hive} -Djavax.jdo.option.ConnectionPassword=${POSTGRES_PASSWORD:-hive_metastore}
+      - SERVICE_OPTS=-Djavax.jdo.option.ConnectionDriverName=org.postgresql.Driver -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://postgres:5432/metastore -Djavax.jdo.option.ConnectionUserName=${POSTGRES_USER:-hive} -Djavax.jdo.option.ConnectionPassword=${POSTGRES_PASSWORD:-hive_metastore} -Dmetastore.warehouse.dir=file:///warehouse -Dhive.metastore.warehouse.dir=file:///warehouse
+    volumes:
+      - hive-warehouse:/warehouse
     networks:
       - bigdata-net
     depends_on:
@@ -116,7 +119,9 @@ services:
     environment:
       - SERVICE_NAME=hiveserver2
       - HIVE_SERVER2_THRIFT_PORT=10000
-      - SERVICE_OPTS=-Dhive.metastore.uris=thrift://hive-metastore:9083
+      - SERVICE_OPTS=-Dhive.metastore.uris=thrift://hive-metastore:9083 -Dhive.metastore.warehouse.dir=file:///warehouse
+    volumes:
+      - hive-warehouse:/warehouse
     networks:
       - bigdata-net
     depends_on:
@@ -130,3 +135,4 @@ networks:
 volumes:
   jupyter-work:
   postgres-data:
+  hive-warehouse:

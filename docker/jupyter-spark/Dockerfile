@@ -13,5 +13,11 @@ ENV PYSPARK_PYTHON=python3
 ENV PYSPARK_DRIVER_PYTHON=python3
 ENV UV_SYSTEM_PYTHON=1
 
+# Warehouse compartido con los contenedores de Hive (mismo path, volumen comun).
+# 1777 para permitir escritura de usuarios con UID distinto (jovyan / hive).
+USER root
+RUN mkdir -p /warehouse && chmod 1777 /warehouse
+USER ${NB_UID}
+
 # Directorio de trabajo
 WORKDIR /home/jovyan
