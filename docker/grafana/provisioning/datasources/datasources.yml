@@ -1,0 +1,21 @@
+apiVersion: 1
+datasources:
+  - name: Prometheus
+    uid: prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+
+  - name: Postgres-Analytics
+    uid: postgres_analytics
+    type: postgres
+    access: proxy
+    url: postgres:5432
+    database: analytics
+    user: hive
+    secureJsonData:
+      password: hive_metastore
+    jsonData:
+      sslmode: disable
+      postgresVersion: 1600

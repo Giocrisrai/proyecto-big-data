@@ -1,0 +1,75 @@
+{
+  "uid": "bigdata-infra",
+  "title": "🩺 Infraestructura — Big Data local",
+  "tags": ["bigdata", "infra"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": { "from": "now-15m", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "¿Qué es esto y su símil en la nube?",
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 0 },
+      "options": {
+        "mode": "markdown",
+        "content": "## Observabilidad de infraestructura\nMétricas técnicas de los servicios locales (CPU/RAM por contenedor, estado, Kafka). **Tú** operas este stack (Prometheus + cAdvisor + kafka-exporter + Grafana).\n\n| Pieza local | GCP | AWS | Azure |\n|---|---|---|---|\n| **Grafana** | Cloud Monitoring | CloudWatch Dashboards | Azure Monitor |\n| **Prometheus** | Managed Prometheus | Amazon Managed Prometheus | Azure Monitor (Prometheus) |\n| **cAdvisor** (métricas de contenedor) | GKE | ECS/EKS | AKS |\n| **kafka-exporter** (lag) | métricas de Pub/Sub | Kinesis / MSK | Event Hubs |"
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Servicios monitoreados (up=1 / down=0)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 6 },
+      "targets": [
+        { "expr": "up", "legendFormat": "{{job}}", "refId": "A" }
+      ],
+      "options": { "colorMode": "background", "graphMode": "none" },
+      "fieldConfig": { "defaults": { "mappings": [], "thresholds": { "steps": [ { "color": "red", "value": null }, { "color": "green", "value": 1 } ] } } }
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "CPU por contenedor (núcleos)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 6 },
+      "targets": [
+        { "expr": "rate(container_cpu_usage_seconds_total{name=~\"bigdata-.*\"}[1m])", "legendFormat": "{{name}}", "refId": "A" }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Memoria por contenedor",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 6 },
+      "fieldConfig": { "defaults": { "unit": "bytes" } },
+      "targets": [
+        { "expr": "container_memory_usage_bytes{name=~\"bigdata-.*\"}", "legendFormat": "{{name}}", "refId": "A" }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Kafka — offset por topic (mensajes acumulados)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 14 },
+      "targets": [
+        { "expr": "sum by (topic) (kafka_topic_partition_current_offset{topic!~\"__.*\"})", "legendFormat": "{{topic}}", "refId": "A" }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Kafka — lag de consumidores",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 14 },
+      "targets": [
+        { "expr": "sum by (consumergroup, topic) (kafka_consumergroup_lag)", "legendFormat": "{{consumergroup}} / {{topic}}", "refId": "A" }
+      ]
+    }
+  ]
+}

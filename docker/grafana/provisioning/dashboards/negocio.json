@@ -1,0 +1,63 @@
+{
+  "uid": "bigdata-negocio",
+  "title": "📊 Negocio en vivo — transacciones",
+  "tags": ["bigdata", "negocio"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5s",
+  "time": { "from": "now-15m", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "Datos en vivo y su símil en la nube",
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 0 },
+      "options": {
+        "mode": "markdown",
+        "content": "## Analítica en tiempo real\nEl pipeline `Kafka → Spark Structured Streaming → Postgres → Grafana` es el *serving layer* de las arquitecturas Lambda/Kappa.\n\n| Pieza local | GCP | AWS | Azure |\n|---|---|---|---|\n| **Kafka** | Pub/Sub | Kinesis / MSK | Event Hubs |\n| **Spark Streaming** | Dataflow | Kinesis Data Analytics | Stream Analytics |\n| **Postgres** (serving) | BigQuery | Redshift | Synapse |\n| **Grafana** (dashboard de datos) | Looker Studio | QuickSight | Power BI |\n\n> Corré el job `scripts/streaming_a_postgres.py` y el generador de transacciones para ver esto moverse."
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Monto total acumulado",
+      "datasource": { "type": "postgres", "uid": "postgres_analytics" },
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 6 },
+      "fieldConfig": { "defaults": { "unit": "currencyUSD" } },
+      "targets": [
+        { "rawSql": "SELECT COALESCE(SUM(monto_total),0) AS monto_total FROM ventas_agg;", "format": "table", "refId": "A" }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "barchart",
+      "title": "Monto por región",
+      "datasource": { "type": "postgres", "uid": "postgres_analytics" },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 6 },
+      "targets": [
+        { "rawSql": "SELECT region, SUM(monto_total) AS monto FROM ventas_agg GROUP BY region ORDER BY monto DESC;", "format": "table", "refId": "A" }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Transacciones por región (en el tiempo)",
+      "datasource": { "type": "postgres", "uid": "postgres_analytics" },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 6 },
+      "targets": [
+        { "rawSql": "SELECT actualizado_en AS time, region AS metric, n_tx FROM ventas_agg WHERE $__timeFilter(actualizado_en) ORDER BY actualizado_en;", "format": "time_series", "refId": "A" }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "table",
+      "title": "Últimos lotes procesados",
+      "datasource": { "type": "postgres", "uid": "postgres_analytics" },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 14 },
+      "targets": [
+        { "rawSql": "SELECT actualizado_en, region, n_tx, monto_total FROM ventas_agg ORDER BY actualizado_en DESC LIMIT 20;", "format": "table", "refId": "A" }
+      ]
+    }
+  ]
+}
