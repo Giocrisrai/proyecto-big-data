@@ -6,6 +6,7 @@
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white)
 ![Kafka](https://img.shields.io/badge/Apache_Kafka-3.9-231F20?style=flat-square&logo=apachekafka&logoColor=white)
 ![Hive](https://img.shields.io/badge/Apache_Hive-4.0-FDEE21?style=flat-square&logo=apachehive&logoColor=black)
+![Grafana](https://img.shields.io/badge/Grafana-11.4-F46800?style=flat-square&logo=grafana&logoColor=white)
 
 ## Descripcion
 
@@ -148,9 +149,10 @@ docker-compose --profile basico up -d
 | 04 | `dashboard_tiempo_real.ipynb` | Dashboard interactivo con ipywidgets | **basico** |
 | 05 | `streaming_sin_kafka.ipynb` | Streaming offline desde JSONL (sin Kafka) | **basico** |
 | 06 | `watermarks_y_windows.ipynb` | Watermarks y ventanas (explicacion visual) | **basico** |
+| 07 | `observabilidad_grafana.ipynb` | Observabilidad con Grafana + simil cloud | completo |
 
 ```bash
-# Para notebooks 01-03 (con Kafka)
+# Para notebooks 01-03 y 07 (con Kafka / Grafana)
 docker-compose --profile completo up -d
 
 # Para notebooks 04-06 (sin Kafka)
@@ -210,6 +212,42 @@ docker-compose build jupyter-spark
 | **Hive Metastore** | 9083 | `thrift://localhost:9083` | completo |
 | **HiveServer2** | 10000 | `jdbc:hive2://localhost:10000` | completo |
 | **HiveServer2 Web UI** | 10002 | http://localhost:10002 | completo |
+| **Grafana** | 3000 | http://localhost:3000 (acceso anonimo de lectura) | completo |
+| **Prometheus** | 9090 | http://localhost:9090 | completo |
+
+> Si el puerto 3000 ya esta en uso en tu equipo, cambia `GRAFANA_PORT` en `.env`
+> (por ejemplo `GRAFANA_PORT=3001`) y reinicia: `docker-compose --profile completo up -d`.
+
+---
+
+## Observabilidad con Grafana (servicios locales vs nube)
+
+El perfil `completo` incluye un stack de observabilidad para **ver los servicios
+funcionando en tiempo real** y entender su equivalente gestionado en la nube:
+
+- **Prometheus** + **cAdvisor** + **kafka-exporter** recolectan métricas técnicas.
+- **Grafana** las visualiza en dos dashboards pre-armados (carpeta *Big Data*):
+  - **🩺 Infraestructura:** CPU/RAM por contenedor, estado up/down, lag de Kafka.
+  - **📊 Negocio en vivo:** ventas por región/throughput, alimentado por el
+    pipeline `Kafka → Spark Streaming → Postgres → Grafana`.
+
+Cada dashboard incluye un panel con el **símil cloud** (Cloud Monitoring /
+CloudWatch / Azure Monitor; Pub-Sub / Kinesis / Event Hubs; BigQuery / Redshift /
+Synapse; Dataflow / Stream Analytics).
+
+Para alimentar el dashboard de negocio: corré el notebook
+`notebooks/EA3_tiempo_real/07_observabilidad_grafana.ipynb` (genera transacciones
+y lanza el job `scripts/streaming_a_postgres.py`).
+
+> **Recursos:** el perfil completo con observabilidad usa ~5-6 GB. Si Docker va
+> justo, sube la memoria (con Colima: `colima stop && colima start --cpu 4 --memory 10`).
+>
+> **Entornos ya instalados:** la base `analytics` (que usa Grafana) se crea sola
+> en una instalación limpia. Si ya tenías el entorno, créala una vez con:
+> ```bash
+> docker exec bigdata-postgres psql -U hive -d metastore -c "CREATE DATABASE analytics"
+> docker exec bigdata-postgres psql -U hive -d analytics -c "CREATE TABLE IF NOT EXISTS ventas_agg (region TEXT, n_tx BIGINT, monto_total BIGINT, actualizado_en TIMESTAMP DEFAULT now());"
+> ```
 
 ---
 
