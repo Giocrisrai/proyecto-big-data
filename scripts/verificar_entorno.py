@@ -136,37 +136,34 @@ def verificar_kafka():
 
 def verificar_analytics():
     """Verifica base analytics y tabla ventas_agg (alimenta Grafana)."""
-    from pyspark.sql import SparkSession
+    try:
+        import psycopg2
+    except ImportError:
+        import subprocess
+        subprocess.check_call(
+            [sys.executable, "-m", "pip", "install", "-q", "psycopg2-binary"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        import psycopg2
 
-    spark = (
-        SparkSession.builder
-        .appName("verificacion_analytics")
-        .master("local[1]")
-        .config("spark.jars.packages", "org.postgresql:postgresql:42.7.4")
-        .getOrCreate()
+    conn = psycopg2.connect(
+        host="postgres",
+        dbname="analytics",
+        user="hive",
+        password="hive_metastore",
+        connect_timeout=5,
     )
     try:
-        row = spark.read.jdbc(
-            "jdbc:postgresql://postgres:5432/analytics",
-            "(SELECT to_regclass('public.ventas_agg') IS NOT NULL AS ok) AS q",
-            properties={
-                "user": "hive",
-                "password": "hive_metastore",
-                "driver": "org.postgresql.Driver",
-            },
-        ).collect()[0]
-        ok = bool(row["ok"])
+        cur = conn.cursor()
+        cur.execute("SELECT to_regclass('public.ventas_agg') IS NOT NULL;")
+        ok = bool(cur.fetchone()[0])
+        cur.close()
         if not ok:
             print("    Tip: ejecuta ./scripts/iniciar_dashboard_vivo.sh")
         return ok
-    except Exception as e:
-        msg = str(e).lower()
-        if "analytics" in msg and "does not exist" in msg:
-            print("    Base 'analytics' no existe. Ejecuta ./scripts/iniciar_dashboard_vivo.sh")
-            return False
-        raise
     finally:
-        spark.stop()
+        conn.close()
 
 
 def verificar_grafana():

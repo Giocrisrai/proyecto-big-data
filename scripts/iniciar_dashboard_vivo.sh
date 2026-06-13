@@ -22,7 +22,7 @@ if ! docker ps --format '{{.Names}}' | grep -q '^bigdata-jupyter$'; then
 fi
 
 # 2. Crear base analytics y tabla si no existen (entornos ya instalados)
-if ! docker exec bigdata-postgres psql -U hive -tAc "SELECT 1 FROM pg_database WHERE datname='analytics';" | grep -q 1; then
+if ! docker exec bigdata-postgres psql -U hive -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='analytics';" | grep -q 1; then
   echo ">> Creando base 'analytics' y tabla ventas_agg..."
   docker exec -i bigdata-postgres psql -U hive -d postgres < docker/postgres/initdb/01_analytics.sql
 else

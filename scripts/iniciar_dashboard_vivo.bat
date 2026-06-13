@@ -23,7 +23,7 @@ if errorlevel 1 (
 )
 
 echo ^>^> Verificando base analytics...
-docker exec bigdata-postgres psql -U hive -tAc "SELECT 1 FROM pg_database WHERE datname='analytics';" 2>nul | findstr /x "1" >nul
+docker exec bigdata-postgres psql -U hive -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='analytics';" 2>nul | findstr /x "1" >nul
 if errorlevel 1 (
   docker exec -i bigdata-postgres psql -U hive -d postgres < docker\postgres\initdb\01_analytics.sql
 ) else (
