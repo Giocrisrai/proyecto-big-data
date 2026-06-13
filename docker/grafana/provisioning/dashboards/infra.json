@@ -5,7 +5,7 @@
   "tags": ["bigdata", "infra", "prometheus"],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 2,
+  "version": 3,
   "refresh": "10s",
   "liveNow": true,
   "time": { "from": "now-15m", "to": "now" },

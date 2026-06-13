@@ -10,8 +10,8 @@ echo.
 cd /d "%~dp0\.."
 
 echo 1. Deteniendo contenedores...
-docker-compose --profile completo down -v 2>nul
-docker-compose --profile basico down -v 2>nul
+docker compose --profile completo down -v 2>nul
+docker compose --profile basico down -v 2>nul
 
 echo 2. Eliminando datos temporales...
 if exist datos\streaming\output rd /s /q datos\streaming\output
@@ -24,6 +24,7 @@ if exist derby.log del derby.log
 
 echo.
 echo Reset completado. Para volver a iniciar:
-echo   docker-compose --profile basico up -d
+echo   docker compose --profile completo up -d --build
+echo   scripts\iniciar_dashboard_vivo.bat
 echo.
 pause

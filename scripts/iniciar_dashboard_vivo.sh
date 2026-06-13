@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # Inicia el pipeline completo para alimentar el dashboard de Grafana en vivo.
-# Uso: ./scripts/iniciar_dashboard_vivo.sh
+# Uso: ./scripts/iniciar_dashboard_vivo.sh [duracion_seg] [velocidad_tx_s]
 set -euo pipefail
+
+REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$REPO_DIR"
 
 DURACION="${1:-3600}"   # segundos del generador (default: 1 hora)
 VELOCIDAD="${2:-5}"     # transacciones por segundo
@@ -18,12 +21,14 @@ if ! docker ps --format '{{.Names}}' | grep -q '^bigdata-jupyter$'; then
   exit 1
 fi
 
-# 2. Crear base analytics si no existe (entornos ya instalados)
-if ! docker exec bigdata-postgres psql -U hive -lqt | grep -q 'analytics'; then
+# 2. Crear base analytics y tabla si no existen (entornos ya instalados)
+if ! docker exec bigdata-postgres psql -U hive -tAc "SELECT 1 FROM pg_database WHERE datname='analytics';" | grep -q 1; then
   echo ">> Creando base 'analytics' y tabla ventas_agg..."
   docker exec -i bigdata-postgres psql -U hive -d postgres < docker/postgres/initdb/01_analytics.sql
 else
   echo ">> Base 'analytics' OK"
+  docker exec bigdata-postgres psql -U hive -d analytics -c \
+    "CREATE TABLE IF NOT EXISTS ventas_agg (region TEXT, n_tx BIGINT, monto_total BIGINT, actualizado_en TIMESTAMP DEFAULT now());" >/dev/null
 fi
 
 # 3. Detener procesos previos del pipeline (si existen)
@@ -61,6 +66,5 @@ echo "    Negocio:  http://localhost:${GRAFANA_PORT}/d/bigdata-negocio"
 echo "    Infra:    http://localhost:${GRAFANA_PORT}/d/bigdata-infra"
 echo ""
 echo "  Para detener:"
-echo "    docker exec bigdata-jupyter pkill -f streaming_a_postgres"
-echo "    docker exec bigdata-jupyter pkill -f generar_datos_streaming"
+echo "    ./scripts/detener_dashboard_vivo.sh"
 echo "============================================================"

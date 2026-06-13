@@ -22,13 +22,15 @@ PG_PROPS = {
 spark = (
     SparkSession.builder
     .appName("streaming_a_postgres")
-    .master("local[*]")
+    .master("local[2]")
     .config(
         "spark.jars.packages",
         "org.apache.spark:spark-sql-kafka-0-10_2.13:4.1.2,"
         "org.postgresql:postgresql:42.7.4",
     )
+    .config("spark.driver.memory", "1g")
     .config("spark.sql.shuffle.partitions", "4")
+    .config("spark.sql.streaming.forceDeleteTempCheckpointLocation", "true")
     .getOrCreate()
 )
 spark.sparkContext.setLogLevel("ERROR")

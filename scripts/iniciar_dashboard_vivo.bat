@@ -22,12 +22,13 @@ if errorlevel 1 (
   exit /b 1
 )
 
-echo ^>^> Creando base analytics si no existe...
-docker exec bigdata-postgres psql -U hive -lqt 2>nul | findstr /i "analytics" >nul
+echo ^>^> Verificando base analytics...
+docker exec bigdata-postgres psql -U hive -tAc "SELECT 1 FROM pg_database WHERE datname='analytics';" 2>nul | findstr /x "1" >nul
 if errorlevel 1 (
   docker exec -i bigdata-postgres psql -U hive -d postgres < docker\postgres\initdb\01_analytics.sql
 ) else (
   echo ^>^> Base analytics OK
+  docker exec bigdata-postgres psql -U hive -d analytics -c "CREATE TABLE IF NOT EXISTS ventas_agg (region TEXT, n_tx BIGINT, monto_total BIGINT, actualizado_en TIMESTAMP DEFAULT now());" >nul
 )
 
 echo ^>^> Deteniendo procesos previos...

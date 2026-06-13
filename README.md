@@ -89,6 +89,7 @@ proyecto-big-data/
 │   ├── streaming_a_postgres.py     # Job Spark: Kafka -> Postgres (Grafana)
 │   ├── iniciar_dashboard_vivo.sh   # Arranque automatico del pipeline (Linux/Mac)
 │   ├── iniciar_dashboard_vivo.bat  # Arranque automatico del pipeline (Windows)
+│   ├── detener_dashboard_vivo.sh   # Detiene Spark + generador
 │   ├── reset_entorno.sh            # Reset del entorno (Linux/Mac)
 │   └── reset_entorno.bat           # Reset del entorno (Windows)
 ├── docs/

@@ -134,6 +134,48 @@ def verificar_kafka():
     return True
 
 
+def verificar_analytics():
+    """Verifica base analytics y tabla ventas_agg (alimenta Grafana)."""
+    from pyspark.sql import SparkSession
+
+    spark = (
+        SparkSession.builder
+        .appName("verificacion_analytics")
+        .master("local[1]")
+        .config("spark.jars.packages", "org.postgresql:postgresql:42.7.4")
+        .getOrCreate()
+    )
+    try:
+        row = spark.read.jdbc(
+            "jdbc:postgresql://postgres:5432/analytics",
+            "(SELECT to_regclass('public.ventas_agg') IS NOT NULL AS ok) AS q",
+            properties={
+                "user": "hive",
+                "password": "hive_metastore",
+                "driver": "org.postgresql.Driver",
+            },
+        ).collect()[0]
+        ok = bool(row["ok"])
+        if not ok:
+            print("    Tip: ejecuta ./scripts/iniciar_dashboard_vivo.sh")
+        return ok
+    except Exception as e:
+        msg = str(e).lower()
+        if "analytics" in msg and "does not exist" in msg:
+            print("    Base 'analytics' no existe. Ejecuta ./scripts/iniciar_dashboard_vivo.sh")
+            return False
+        raise
+    finally:
+        spark.stop()
+
+
+def verificar_grafana():
+    """Verifica que Grafana responde (puerto interno 3000)."""
+    import urllib.request
+    with urllib.request.urlopen("http://grafana:3000/api/health", timeout=5) as resp:
+        return resp.status == 200
+
+
 def verificar_hive():
     """Verifica que el Hive Metastore este accesible (puerto thrift 9083).
 
@@ -179,6 +221,8 @@ def main():
     avanzadas = [
         ("Kafka accesible", verificar_kafka),
         ("Hive Metastore accesible", verificar_hive),
+        ("Postgres analytics + ventas_agg", verificar_analytics),
+        ("Grafana accesible", verificar_grafana),
     ]
 
     for nombre, func in avanzadas:

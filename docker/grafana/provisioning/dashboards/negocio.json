@@ -5,7 +5,7 @@
   "tags": ["bigdata", "negocio", "tiempo-real"],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 2,
+  "version": 3,
   "refresh": "5s",
   "liveNow": true,
   "time": { "from": "now-15m", "to": "now" },
@@ -39,7 +39,7 @@
     {
       "id": 2,
       "type": "stat",
-      "title": "Transacciones totales",
+      "title": "Tx totales",
       "description": "Suma de todas las transacciones procesadas. El mini-gráfico muestra la tendencia reciente.",
       "datasource": { "type": "postgres", "uid": "postgres_analytics" },
       "gridPos": { "h": 5, "w": 6, "x": 0, "y": 7 },
@@ -70,23 +70,16 @@
     {
       "id": 3,
       "type": "stat",
-      "title": "Monto acumulado (CLP)",
+      "title": "Monto acumulado",
       "description": "Suma total de ventas en pesos chilenos.",
       "datasource": { "type": "postgres", "uid": "postgres_analytics" },
       "gridPos": { "h": 5, "w": 6, "x": 6, "y": 7 },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": { "mode": "palette-classic" },
           "unit": "short",
           "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 50000000 },
-              { "color": "red", "value": 200000000 }
-            ]
-          }
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] }
         }
       },
       "options": {
@@ -108,7 +101,7 @@
     {
       "id": 4,
       "type": "stat",
-      "title": "Último lote (tx)",
+      "title": "Último lote",
       "description": "Transacciones del último micro-batch procesado por Spark (cada ~5 s).",
       "datasource": { "type": "postgres", "uid": "postgres_analytics" },
       "gridPos": { "h": 5, "w": 6, "x": 12, "y": 7 },
@@ -133,11 +126,11 @@
         "justifyMode": "center",
         "orientation": "auto",
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "value_and_name"
+        "textMode": "value"
       },
       "targets": [
         {
-          "rawSql": "SELECT COALESCE((SELECT n_tx FROM ventas_agg ORDER BY actualizado_en DESC LIMIT 1), 0) AS ultimo_lote;",
+          "rawSql": "SELECT COALESCE((SELECT n_tx FROM ventas_agg ORDER BY actualizado_en DESC LIMIT 1), 0) AS \"tx en lote\";",
           "format": "table",
           "refId": "A"
         }
