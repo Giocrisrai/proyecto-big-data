@@ -171,6 +171,30 @@ docker-compose --profile basico up -d
 
 ---
 
+## Generacion de Datos Sinteticos (batch y streaming)
+
+El script `scripts/generar_datos_streaming.py` permite simular tus propios datos
+de practica en dos modos:
+
+```bash
+# BATCH: generar un archivo (JSONL o CSV) — sirve para EA1/EA2 con perfil basico
+docker exec bigdata-jupyter python /home/jovyan/scripts/generar_datos_streaming.py \
+  --tipo transacciones --archivo /home/jovyan/datos/streaming/mis_ventas.jsonl --cantidad 1000
+
+# STREAMING: enviar eventos en vivo a Kafka — requiere perfil completo (EA3)
+docker exec bigdata-jupyter python /home/jovyan/scripts/generar_datos_streaming.py \
+  --tipo transacciones --velocidad 5 --duracion 600 --topic transacciones
+```
+
+Tipos disponibles: `transacciones`, `logs`, `iot` (batch y streaming),
+`clickstream`, `stock`, `social` (solo batch). Con `--calidad baja` se generan
+datos sucios (nulos y anomalias) para practicar limpieza.
+
+> Guia completa con ejemplos, lectura con Spark y pipeline hacia Grafana:
+> [docs/guias/generacion_datos_sinteticos.md](docs/guias/generacion_datos_sinteticos.md)
+
+---
+
 ## Comandos Utiles
 
 ```bash
@@ -275,6 +299,7 @@ Guias adicionales en `docs/guias/`:
 - `despliegue_cluster_gcp.pdf` - Guia de despliegue de cluster en Google Cloud Platform
 - `guia_visualizacion.pdf` - Guia de visualizacion de datos
 - `uv_gestor_paquetes.md` - [Guia de uv](docs/guias/uv_gestor_paquetes.md): gestor de paquetes Python ultrarapido (Astral)
+- `generacion_datos_sinteticos.md` - [Guia de datos sinteticos](docs/guias/generacion_datos_sinteticos.md): como simular datos batch (archivos) y streaming (Kafka)
 
 ---
 
