@@ -251,17 +251,25 @@ funcionando en tiempo real** y entender su equivalente gestionado en la nube:
 
 - **Prometheus** + **cAdvisor** + **kafka-exporter** recolectan métricas técnicas.
 - **Grafana** las visualiza en dos dashboards pre-armados (carpeta *Big Data*):
-  - **🩺 Infraestructura:** CPU/RAM por contenedor, estado up/down, lag de Kafka.
-  - **📊 Negocio en vivo:** ventas por región/throughput, alimentado por el
-    pipeline `Kafka → Spark Streaming → Postgres → Grafana`.
+  - **🩺 Infraestructura:** salud de servicios, CPU/RAM, velocidad de ingesta Kafka, lag.
+  - **📊 Negocio en vivo:** KPIs, throughput, comparación por región, tabla de lotes.
+    Cada sección del dashboard indica el **tipo de panel** (Stat, Time series, Bar gauge, Pie chart, Table).
 
 Cada dashboard incluye un panel con el **símil cloud** (Cloud Monitoring /
 CloudWatch / Azure Monitor; Pub-Sub / Kinesis / Event Hubs; BigQuery / Redshift /
 Synapse; Dataflow / Stream Analytics).
 
-Para alimentar el dashboard de negocio: corré el notebook
-`notebooks/EA3_tiempo_real/07_observabilidad_grafana.ipynb` (genera transacciones
-y lanza el job `scripts/streaming_a_postgres.py`).
+Para alimentar el dashboard de negocio, ejecuta el script automatizado:
+
+```bash
+# Inicia Spark Streaming + generador de transacciones (1 hora, 5 tx/s)
+./scripts/iniciar_dashboard_vivo.sh
+
+# O con parámetros: duración (seg) y velocidad (tx/s)
+./scripts/iniciar_dashboard_vivo.sh 1800 10
+```
+
+También puedes seguir el notebook `notebooks/EA3_tiempo_real/07_observabilidad_grafana.ipynb`.
 
 > **Recursos:** el perfil completo con observabilidad usa ~5-6 GB. Si Docker va
 > justo, sube la memoria (con Colima: `colima stop && colima start --cpu 4 --memory 10`).

@@ -1,72 +1,314 @@
 {
   "uid": "bigdata-infra",
   "title": "🩺 Infraestructura — Big Data local",
-  "tags": ["bigdata", "infra"],
+  "description": "Dashboard técnico de observabilidad: salud de servicios, CPU, memoria y Kafka.",
+  "tags": ["bigdata", "infra", "prometheus"],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 1,
+  "version": 2,
   "refresh": "10s",
+  "liveNow": true,
   "time": { "from": "now-15m", "to": "now" },
+  "graphTooltip": 1,
   "panels": [
+    {
+      "id": 100,
+      "type": "row",
+      "title": "🧭 Cómo leer este dashboard",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "collapsed": false
+    },
     {
       "id": 1,
       "type": "text",
-      "title": "¿Qué es esto y su símil en la nube?",
-      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 0 },
+      "title": "Observabilidad técnica",
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 1 },
       "options": {
         "mode": "markdown",
-        "content": "## Observabilidad de infraestructura\nMétricas técnicas de los servicios locales (CPU/RAM por contenedor, estado, Kafka). **Tú** operas este stack (Prometheus + cAdvisor + kafka-exporter + Grafana).\n\n| Pieza local | GCP | AWS | Azure |\n|---|---|---|---|\n| **Grafana** | Cloud Monitoring | CloudWatch Dashboards | Azure Monitor |\n| **Prometheus** | Managed Prometheus | Amazon Managed Prometheus | Azure Monitor (Prometheus) |\n| **cAdvisor** (métricas de contenedor) | GKE | ECS/EKS | AKS |\n| **kafka-exporter** (lag) | métricas de Pub/Sub | Kinesis / MSK | Event Hubs |"
+        "content": "### Métricas de infraestructura (Prometheus + cAdvisor + kafka-exporter)\n\n| Tipo de panel | Qué mide | Ejemplo aquí |\n|---|---|---|\n| **Stat con color** | Estado binario (OK / caído) | Servicios monitoreados (verde = up) |\n| **Time series** | Recurso en el tiempo | CPU y memoria por contenedor |\n| **Time series con umbrales** | Métrica con alerta visual | Lag de consumidores Kafka |\n\n> Símil en la nube: Cloud Monitoring (GCP), CloudWatch (AWS), Azure Monitor."
       }
+    },
+    {
+      "id": 101,
+      "type": "row",
+      "title": "✅ Salud de servicios (panel Stat)",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "collapsed": false
     },
     {
       "id": 2,
       "type": "stat",
-      "title": "Servicios monitoreados (up=1 / down=0)",
+      "title": "Prometheus",
+      "description": "1 = recolectando métricas, 0 = caído",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 6 },
-      "targets": [
-        { "expr": "up", "legendFormat": "{{job}}", "refId": "A" }
-      ],
-      "options": { "colorMode": "background", "graphMode": "none" },
-      "fieldConfig": { "defaults": { "mappings": [], "thresholds": { "steps": [ { "color": "red", "value": null }, { "color": "green", "value": 1 } ] } } }
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 6 },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "options": { "0": { "color": "red", "index": 1, "text": "DOWN" }, "1": { "color": "green", "index": 0, "text": "UP" } }, "type": "value" }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "value" },
+      "targets": [{ "expr": "up{job=\"prometheus\"}", "legendFormat": "prometheus", "refId": "A" }]
     },
     {
       "id": 3,
+      "type": "stat",
+      "title": "cAdvisor",
+      "description": "Métricas de contenedores Docker",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 6 },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "options": { "0": { "color": "red", "index": 1, "text": "DOWN" }, "1": { "color": "green", "index": 0, "text": "UP" } }, "type": "value" }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "value" },
+      "targets": [{ "expr": "up{job=\"cadvisor\"}", "legendFormat": "cadvisor", "refId": "A" }]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Kafka exporter",
+      "description": "Métricas de topics y consumidores",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 6 },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "options": { "0": { "color": "red", "index": 1, "text": "DOWN" }, "1": { "color": "green", "index": 0, "text": "UP" } }, "type": "value" }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "value" },
+      "targets": [{ "expr": "up{job=\"kafka\"}", "legendFormat": "kafka", "refId": "A" }]
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Contenedores activos",
+      "description": "Contenedores bigdata-* corriendo ahora",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 6 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 5 },
+              { "color": "green", "value": 8 }
+            ]
+          }
+        }
+      },
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "center", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "value" },
+      "targets": [{ "expr": "count(container_last_seen{name=~\"bigdata-.*\"})", "legendFormat": "contenedores", "refId": "A" }]
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Mensajes en Kafka (total)",
+      "description": "Offset acumulado en todos los topics (sin internos __*)",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 6 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "short",
+          "decimals": 0
+        }
+      },
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "auto" },
+      "targets": [{ "expr": "sum(kafka_topic_partition_current_offset{topic!~\"__.*\"})", "legendFormat": "mensajes", "refId": "A" }]
+    },
+    {
+      "id": 102,
+      "type": "row",
+      "title": "💻 Recursos por contenedor (panel Time series)",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 10 },
+      "collapsed": false
+    },
+    {
+      "id": 7,
       "type": "timeseries",
       "title": "CPU por contenedor (núcleos)",
+      "description": "Uso de CPU. Picos altos en jupyter = Spark procesando streaming.",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 6 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 11 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisLabel": "núcleos",
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 4,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": { "group": "A", "mode": "none" }
+          },
+          "unit": "short",
+          "decimals": 2,
+          "min": 0
+        }
+      },
+      "options": {
+        "legend": { "calcs": ["mean", "max", "last"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
       "targets": [
         { "expr": "rate(container_cpu_usage_seconds_total{name=~\"bigdata-.*\"}[1m])", "legendFormat": "{{name}}", "refId": "A" }
       ]
     },
     {
-      "id": 4,
+      "id": 8,
       "type": "timeseries",
       "title": "Memoria por contenedor",
+      "description": "RAM usada por cada contenedor del stack.",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 6 },
-      "fieldConfig": { "defaults": { "unit": "bytes" } },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 11 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisLabel": "memoria",
+            "drawStyle": "line",
+            "fillOpacity": 25,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 4,
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": { "group": "A", "mode": "none" }
+          },
+          "unit": "bytes",
+          "min": 0
+        }
+      },
+      "options": {
+        "legend": { "calcs": ["mean", "max", "last"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
       "targets": [
         { "expr": "container_memory_usage_bytes{name=~\"bigdata-.*\"}", "legendFormat": "{{name}}", "refId": "A" }
       ]
     },
     {
-      "id": 5,
+      "id": 103,
+      "type": "row",
+      "title": "📨 Kafka — mensajería en tiempo real",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 19 },
+      "collapsed": false
+    },
+    {
+      "id": 9,
       "type": "timeseries",
-      "title": "Kafka — offset por topic (mensajes acumulados)",
+      "title": "Mensajes acumulados por topic",
+      "description": "Cuántos mensajes hay en cada topic. Sube cuando el generador está activo.",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 14 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 30,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "gradientMode": "scheme",
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "unit": "short",
+          "decimals": 0,
+          "min": 0
+        }
+      },
+      "options": {
+        "legend": { "calcs": ["last", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
       "targets": [
         { "expr": "sum by (topic) (kafka_topic_partition_current_offset{topic!~\"__.*\"})", "legendFormat": "{{topic}}", "refId": "A" }
       ]
     },
     {
-      "id": 6,
+      "id": 10,
       "type": "timeseries",
-      "title": "Kafka — lag de consumidores",
+      "title": "Velocidad de ingesta (msg/s por topic)",
+      "description": "Tasa de mensajes por segundo. Con generador a 5 tx/s deberías ver ~5 msg/s en 'transacciones'.",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 14 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 70,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }
+          },
+          "unit": "ops",
+          "decimals": 1,
+          "min": 0
+        }
+      },
+      "options": {
+        "legend": { "calcs": ["mean", "max", "last"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        { "expr": "sum by (topic) (rate(kafka_topic_partition_current_offset{topic!~\"__.*\"}[1m]))", "legendFormat": "{{topic}}", "refId": "A" }
+      ]
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Lag de consumidores Kafka",
+      "description": "Mensajes pendientes de leer. Verde = 0 (al día). Amarillo/rojo = Spark no está consumiendo.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 28 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "lineWidth": 2,
+            "showPoints": "auto",
+            "spanNulls": true,
+            "thresholdsStyle": { "mode": "line+area" }
+          },
+          "unit": "short",
+          "decimals": 0,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 50 },
+              { "color": "red", "value": 200 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "legend": { "calcs": ["last", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
       "targets": [
         { "expr": "sum by (consumergroup, topic) (kafka_consumergroup_lag)", "legendFormat": "{{consumergroup}} / {{topic}}", "refId": "A" }
       ]

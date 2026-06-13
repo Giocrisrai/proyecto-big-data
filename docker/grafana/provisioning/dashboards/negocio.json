@@ -1,62 +1,389 @@
 {
   "uid": "bigdata-negocio",
   "title": "📊 Negocio en vivo — transacciones",
-  "tags": ["bigdata", "negocio"],
+  "description": "Dashboard de datos de negocio en tiempo real. Muestra KPIs, series temporales, comparaciones y tablas.",
+  "tags": ["bigdata", "negocio", "tiempo-real"],
   "timezone": "browser",
   "schemaVersion": 39,
-  "version": 1,
+  "version": 2,
   "refresh": "5s",
+  "liveNow": true,
   "time": { "from": "now-15m", "to": "now" },
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
   "panels": [
+    {
+      "id": 100,
+      "type": "row",
+      "title": "🧭 Cómo leer este dashboard",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "collapsed": false
+    },
     {
       "id": 1,
       "type": "text",
-      "title": "Datos en vivo y su símil en la nube",
-      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 0 },
+      "title": "Pipeline y tipos de panel",
+      "gridPos": { "h": 5, "w": 24, "x": 0, "y": 1 },
       "options": {
         "mode": "markdown",
-        "content": "## Analítica en tiempo real\nEl pipeline `Kafka → Spark Structured Streaming → Postgres → Grafana` es el *serving layer* de las arquitecturas Lambda/Kappa.\n\n| Pieza local | GCP | AWS | Azure |\n|---|---|---|---|\n| **Kafka** | Pub/Sub | Kinesis / MSK | Event Hubs |\n| **Spark Streaming** | Dataflow | Kinesis Data Analytics | Stream Analytics |\n| **Postgres** (serving) | BigQuery | Redshift | Synapse |\n| **Grafana** (dashboard de datos) | Looker Studio | QuickSight | Power BI |\n\n> Corré el job `scripts/streaming_a_postgres.py` y el generador de transacciones para ver esto moverse."
+        "content": "### Analítica en tiempo real\nPipeline: **Generador → Kafka → Spark Streaming → Postgres → Grafana**\n\n| Tipo de panel | Para qué sirve | Ejemplo en este dashboard |\n|---|---|---|\n| **Stat** | Un número grande (KPI) | Transacciones totales, monto acumulado |\n| **Time series** | Evolución en el tiempo | Throughput de transacciones por minuto |\n| **Bar gauge** | Comparar categorías | Monto por región |\n| **Pie chart** | Proporción / participación | % de transacciones por región |\n| **Table** | Detalle fila a fila | Últimos lotes procesados |\n\n> Para ver datos: `scripts/iniciar_dashboard_vivo.sh` o el notebook `07_observabilidad_grafana.ipynb`"
       }
+    },
+    {
+      "id": 101,
+      "type": "row",
+      "title": "📈 KPIs — números clave (panel Stat)",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 6 },
+      "collapsed": false
     },
     {
       "id": 2,
       "type": "stat",
-      "title": "Monto total acumulado",
+      "title": "Transacciones totales",
+      "description": "Suma de todas las transacciones procesadas. El mini-gráfico muestra la tendencia reciente.",
       "datasource": { "type": "postgres", "uid": "postgres_analytics" },
-      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 6 },
-      "fieldConfig": { "defaults": { "unit": "currencyUSD" } },
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 7 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "short",
+          "decimals": 0,
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] }
+        }
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
       "targets": [
-        { "rawSql": "SELECT COALESCE(SUM(monto_total),0) AS monto_total FROM ventas_agg;", "format": "table", "refId": "A" }
+        {
+          "rawSql": "SELECT actualizado_en AS time, SUM(n_tx) OVER (ORDER BY actualizado_en) AS total_tx FROM ventas_agg WHERE $__timeFilter(actualizado_en) ORDER BY actualizado_en;",
+          "format": "time_series",
+          "refId": "A"
+        }
       ]
     },
     {
       "id": 3,
-      "type": "barchart",
-      "title": "Monto por región",
+      "type": "stat",
+      "title": "Monto acumulado (CLP)",
+      "description": "Suma total de ventas en pesos chilenos.",
       "datasource": { "type": "postgres", "uid": "postgres_analytics" },
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 6 },
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 7 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "unit": "short",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 50000000 },
+              { "color": "red", "value": 200000000 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
       "targets": [
-        { "rawSql": "SELECT region, SUM(monto_total) AS monto FROM ventas_agg GROUP BY region ORDER BY monto DESC;", "format": "table", "refId": "A" }
+        {
+          "rawSql": "SELECT actualizado_en AS time, SUM(monto_total) OVER (ORDER BY actualizado_en) AS monto FROM ventas_agg WHERE $__timeFilter(actualizado_en) ORDER BY actualizado_en;",
+          "format": "time_series",
+          "refId": "A"
+        }
       ]
     },
     {
       "id": 4,
-      "type": "timeseries",
-      "title": "Transacciones por región (en el tiempo)",
+      "type": "stat",
+      "title": "Último lote (tx)",
+      "description": "Transacciones del último micro-batch procesado por Spark (cada ~5 s).",
       "datasource": { "type": "postgres", "uid": "postgres_analytics" },
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 6 },
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 7 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "unit": "short",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "green", "value": 5 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value_and_name"
+      },
       "targets": [
-        { "rawSql": "SELECT actualizado_en AS time, region AS metric, n_tx FROM ventas_agg WHERE $__timeFilter(actualizado_en) ORDER BY actualizado_en;", "format": "time_series", "refId": "A" }
+        {
+          "rawSql": "SELECT COALESCE((SELECT n_tx FROM ventas_agg ORDER BY actualizado_en DESC LIMIT 1), 0) AS ultimo_lote;",
+          "format": "table",
+          "refId": "A"
+        }
       ]
     },
     {
       "id": 5,
-      "type": "table",
-      "title": "Últimos lotes procesados",
+      "type": "stat",
+      "title": "Regiones activas",
+      "description": "Regiones con ventas en los últimos 5 minutos.",
       "datasource": { "type": "postgres", "uid": "postgres_analytics" },
-      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 14 },
+      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 7 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "unit": "short",
+          "max": 3,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "green", "value": 3 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value"
+      },
       "targets": [
-        { "rawSql": "SELECT actualizado_en, region, n_tx, monto_total FROM ventas_agg ORDER BY actualizado_en DESC LIMIT 20;", "format": "table", "refId": "A" }
+        {
+          "rawSql": "SELECT COUNT(DISTINCT region) AS regiones FROM ventas_agg WHERE actualizado_en > NOW() - INTERVAL '5 minutes';",
+          "format": "table",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 102,
+      "type": "row",
+      "title": "⏱️ Series temporales — evolución en el tiempo (panel Time series)",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 12 },
+      "collapsed": false
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Throughput — transacciones por minuto",
+      "description": "Cuántas transacciones llegan cada minuto. Si el generador está activo, deberías ver ~300 tx/min (5 tx/s).",
+      "datasource": { "type": "postgres", "uid": "postgres_analytics" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 13 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "transacciones / min",
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "scheme",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "unit": "short",
+          "decimals": 0
+        }
+      },
+      "options": {
+        "legend": { "calcs": ["mean", "max", "last"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT date_trunc('minute', actualizado_en) AS time, SUM(n_tx) AS \"Transacciones/min\" FROM ventas_agg WHERE $__timeFilter(actualizado_en) GROUP BY 1 ORDER BY 1;",
+          "format": "time_series",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Monto por región en el tiempo",
+      "description": "Evolución del monto acumulado por región. Cada línea es una región (Norte, Centro, Sur).",
+      "datasource": { "type": "postgres", "uid": "postgres_analytics" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 13 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 4,
+            "showPoints": "auto",
+            "spanNulls": true,
+            "stacking": { "group": "A", "mode": "none" }
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Norte" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "Centro" }, "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "Sur" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] }
+        ]
+      },
+      "options": {
+        "legend": { "calcs": ["last"], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT actualizado_en AS time, region, SUM(monto_total) OVER (PARTITION BY region ORDER BY actualizado_en) AS monto FROM ventas_agg WHERE $__timeFilter(actualizado_en) ORDER BY actualizado_en;",
+          "format": "time_series",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 103,
+      "type": "row",
+      "title": "📊 Comparación por categoría (Bar gauge y Pie chart)",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 21 },
+      "collapsed": false
+    },
+    {
+      "id": 8,
+      "type": "bargauge",
+      "title": "Monto total por región",
+      "description": "Comparación visual: ¿qué región vende más?",
+      "datasource": { "type": "postgres", "uid": "postgres_analytics" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 22 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "continuous-GrYlRd" },
+          "unit": "short",
+          "decimals": 0,
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "min": 0
+        }
+      },
+      "options": {
+        "displayMode": "gradient",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showUnfilled": true,
+        "valueMode": "color"
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT region, SUM(monto_total) AS monto FROM ventas_agg GROUP BY region ORDER BY monto DESC;",
+          "format": "table",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "piechart",
+      "title": "Distribución de transacciones por región",
+      "description": "Proporción de transacciones: cada porción es el % de una región.",
+      "datasource": { "type": "postgres", "uid": "postgres_analytics" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 22 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "short",
+          "decimals": 0
+        }
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "showLegend": true, "values": ["value", "percent"] },
+        "pieType": "donut",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT region, SUM(n_tx) AS transacciones FROM ventas_agg GROUP BY region ORDER BY transacciones DESC;",
+          "format": "table",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 104,
+      "type": "row",
+      "title": "📋 Detalle (panel Table)",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 30 },
+      "collapsed": false
+    },
+    {
+      "id": 10,
+      "type": "table",
+      "title": "Últimos lotes procesados por Spark",
+      "description": "Cada fila es un micro-batch: región, cantidad de transacciones y monto del lote.",
+      "datasource": { "type": "postgres", "uid": "postgres_analytics" },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 31 },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "align": "auto", "cellOptions": { "type": "auto" }, "inspect": false },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Monto (CLP)" },
+            "properties": [{ "id": "unit", "value": "short" }, { "id": "custom.cellOptions", "value": { "type": "color-background", "mode": "gradient" } }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Tx en lote" },
+            "properties": [{ "id": "custom.cellOptions", "value": { "type": "color-text" } }, { "id": "color", "value": { "mode": "continuous-BlYlRd" } }]
+          }
+        ]
+      },
+      "options": {
+        "cellHeight": "sm",
+        "footer": { "countRows": true, "enablePagination": true, "show": true },
+        "showHeader": true,
+        "sortBy": [{ "desc": true, "displayName": "Hora" }]
+      },
+      "targets": [
+        {
+          "rawSql": "SELECT actualizado_en AS \"Hora\", region AS \"Región\", n_tx AS \"Tx en lote\", monto_total AS \"Monto (CLP)\" FROM ventas_agg ORDER BY actualizado_en DESC LIMIT 20;",
+          "format": "table",
+          "refId": "A"
+        }
       ]
     }
   ]

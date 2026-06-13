@@ -195,8 +195,22 @@ consulta = ventas.writeStream.outputMode("complete").format("console").start()
 
 ## 5. Pipeline completo: alimentar el dashboard de Grafana
 
-Para ver el dashboard **"Negocio en vivo"** de Grafana con datos reales, necesitas
-dos procesos corriendo en paralelo (cada uno en su propia terminal):
+La forma más simple es usar el script automatizado:
+
+```bash
+# Desde la raíz del proyecto (con perfil completo levantado)
+./scripts/iniciar_dashboard_vivo.sh
+
+# Parámetros opcionales: duración (segundos) y velocidad (tx/s)
+./scripts/iniciar_dashboard_vivo.sh 1800 10
+```
+
+El script hace todo automáticamente:
+1. Crea la base `analytics` si no existe.
+2. Lanza el job Spark (`streaming_a_postgres.py`).
+3. Lanza el generador de transacciones hacia Kafka.
+
+O manualmente (dos terminales):
 
 ```bash
 # Terminal 1: job de Spark que lee de Kafka y escribe agregados en Postgres
