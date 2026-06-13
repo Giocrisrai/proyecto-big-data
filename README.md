@@ -86,6 +86,9 @@ proyecto-big-data/
 ├── scripts/
 │   ├── verificar_entorno.py        # Verificacion del entorno
 │   ├── generar_datos_streaming.py  # Generador de datos en tiempo real
+│   ├── streaming_a_postgres.py     # Job Spark: Kafka -> Postgres (Grafana)
+│   ├── iniciar_dashboard_vivo.sh   # Arranque automatico del pipeline (Linux/Mac)
+│   ├── iniciar_dashboard_vivo.bat  # Arranque automatico del pipeline (Windows)
 │   ├── reset_entorno.sh            # Reset del entorno (Linux/Mac)
 │   └── reset_entorno.bat           # Reset del entorno (Windows)
 ├── docs/
@@ -192,6 +195,12 @@ datos sucios (nulos y anomalias) para practicar limpieza.
 
 > Guia completa con ejemplos, lectura con Spark y pipeline hacia Grafana:
 > [docs/guias/generacion_datos_sinteticos.md](docs/guias/generacion_datos_sinteticos.md)
+>
+> Arranque rapido del dashboard en vivo:
+> ```bash
+> ./scripts/iniciar_dashboard_vivo.sh        # Linux/Mac
+> scripts\iniciar_dashboard_vivo.bat         # Windows
+> ```
 
 ---
 
