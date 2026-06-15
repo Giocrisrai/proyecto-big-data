@@ -349,8 +349,12 @@ El script verificara automaticamente:
 - Capacidad de Spark para leer CSV y escribir/leer Parquet
 - Conexion a Kafka (solo perfil completo)
 - Conexion a Hive Metastore (solo perfil completo)
+- Base Postgres `analytics` y tabla `ventas_agg` (solo perfil completo)
+- Grafana accesible (solo perfil completo)
 
-**Resultado esperado con perfil basico:** 7/9 verificaciones pasadas. Las 2 verificaciones de Kafka y Hive se marcan como opcionales.
+**Resultado esperado con perfil basico:** 7/11 verificaciones pasadas.
+
+**Resultado esperado con perfil completo:** 11/11 verificaciones pasadas.
 
 ---
 
@@ -383,6 +387,40 @@ docker-compose ps
 ```
 
 Todos los servicios deben mostrar estado `Up`.
+
+### Grafana y dashboards en vivo (EA3 notebook 07)
+
+El perfil completo incluye **Grafana**, **Prometheus**, **cAdvisor** y **kafka-exporter**.
+
+1. Abre Grafana en el navegador:
+   ```
+   http://localhost:3000
+   ```
+   (o el puerto configurado en `GRAFANA_PORT` dentro de `.env`)
+
+2. En la carpeta **Big Data** verás dos dashboards:
+   - **Negocio en vivo** — KPIs, throughput, ventas por región
+   - **Infraestructura** — CPU/RAM, salud de servicios, Kafka
+
+3. Para alimentar el dashboard de negocio con datos en tiempo real:
+
+   ```bash
+   # Linux / macOS
+   ./scripts/iniciar_dashboard_vivo.sh
+
+   # Windows
+   scripts\iniciar_dashboard_vivo.bat
+   ```
+
+4. Para detener el pipeline:
+
+   ```bash
+   ./scripts/detener_dashboard_vivo.sh          # Linux / macOS
+   scripts\detener_dashboard_vivo.bat           # Windows
+   ```
+
+> Guía detallada de datos sintéticos (batch y streaming):
+> [docs/guias/generacion_datos_sinteticos.md](docs/guias/generacion_datos_sinteticos.md)
 
 ### Verificar Kafka
 
