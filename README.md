@@ -1,5 +1,7 @@
 # Repositorio de Practica - Big Data (BIY7131)
 
+> **English summary.** Practice repository for the Big Data course (BIY7131) at Duoc UC: PySpark, Kafka and Hive running on Docker. The rest of this document is in Spanish.
+
 ![DUOC UC](https://img.shields.io/badge/DUOC_UC-BIY7131-003DA5?style=flat-square)
 ![Semestre](https://img.shields.io/badge/Semestre-2026--1-green?style=flat-square)
 ![PySpark](https://img.shields.io/badge/PySpark-4.1-E25A1C?style=flat-square&logo=apachespark&logoColor=white)
